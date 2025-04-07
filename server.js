@@ -6,7 +6,7 @@ app.use("/images", express.static("images"));
 app.use(cors());
 
 app.get("/", (req, res) => {
-    response.sendFile(__dirname+"/index.html");
+    res.sendFile(__dirname+"/index.html");
 });
 
 app.get("/api/deities", (req, res)=>{
@@ -290,6 +290,6 @@ app.get("/api/deities", (req, res)=>{
     res.send(deities);
 });
 
-app.listen(3001, ()=>{
+app.listen(3000, ()=>{
     console.log("I'm listening")
 });
