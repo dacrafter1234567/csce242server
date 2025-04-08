@@ -9,6 +9,7 @@ app.get("/", (req, res) => {
     res.sendFile(__dirname+"/index.html");
 });
 
+
 app.get("/api/deities", (req, res)=>{
     const deities = [
             {
