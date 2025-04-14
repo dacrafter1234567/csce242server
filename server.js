@@ -1,12 +1,29 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const Joi = require("joi");
+const multer = require("multer");
+
 app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
 app.use("/images", express.static("images"));
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/images/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 app.get("/", (req, res) => {
-    res.sendFile(__dirname+"/index.html");
+  res.sendFile(__dirname + "/index.html");
 });
 
 
@@ -291,6 +308,114 @@ app.get("/api/deities", (req, res)=>{
     res.send(deities);
 });
 
-app.listen(3000, ()=>{
-    console.log("I'm listening")
+const characters = [
+  {
+    "name": "Helia Mayr",
+    "classcomp": "Fighter 11 (Rune Knight), Monk 4 (Four Elements), Paladin 3 (Heroism), Warlock 2 (Hexblade)",
+    "agerace": "47 y/o Reborn Fire Genasi",
+    "affinity": "Phoenix",
+    "image": "HeliaMayr.jpg"
+  }
+  ,
+  {
+    "name": "Slate 'Red' Circan Finnley",
+    "classcomp": "Artificer 16 (Forge Adept)",
+    "agerace": "28 (263) y/o Reborn",
+    "affinity": "Metal",
+    "image": "Slate.png"
+  }
+  ,
+  {
+    "name": "Karavelle Devantine",
+    "classcomp": "Rogue 12 (Inquisitive), Barbarian 5 (Zealot), Fighter 3 (Champion)",
+    "agerace": "358 y/o Reborn Avariel Elf",
+    "affinity": "Destruction",
+    "image": "KaravelleDevantine.jpg"
+  }
+  ,
+  {
+    "name": "Adonis Destrey",
+    "classcomp": "Paladin 20 (Redemption), Cleric 10 (Blood-Reworked)",
+    "agerace": "1064 y/o Kalashtar",
+    "affinity": "Blood",
+    "image": "AdonisDestrey.jpg"
+  }
+  ,
+  {
+    "name": "Cody De'Airos",
+    "classcomp": "Warlock 15 (Raven Queen)",
+    "agerace": "48 y/o Beasthide Shifter",
+    "affinity": "Sound",
+    "image": "CodyDe'Airos.jpg"
+  }
+  ,
+  {
+    "name": "Orion Steele",
+    "classcomp": "Figher 20 (Battle Master)",
+    "agerace": "35 y/o Human",
+    "affinity": "Earth",
+    "image": "OrionSteele.png"
+  }
+  ,
+  {
+    "name": "Felix Atol",
+    "classcomp": "Wizard 20 (Dunamancy)",
+    "agerace": "47 y/o Kalashtar",
+    "affinity": "Gravity",
+    "image": "FelixAtol.png"
+  }
+  ,
+  {
+    "name": "Joseph Uru",
+    "classcomp": "Wizard 20 (Conjuration)",
+    "agerace": "26 y/o Human",
+    "affinity": "Creation",
+    "image": "JosephUru.png"
+  }
+  ,
+  {
+    "name": "Eisel Voross",
+    "classcomp": "Fighter 20 (Rune Knight)",
+    "agerace": "36 y/o Ice Genasi",
+    "affinity": "Ice",
+    "image": "EiselVoross.jpg"
+  }
+];
+
+
+app.get("/api/characters", (req, res) => {
+  res.send(characters);
+});
+
+app.post("/api/characters", upload.single("image"), (req, res) => {
+  const result = validateCharacter(req.body);
+  if (result.error) {
+    res.status(400).send(result.error.details[0].message);
+    return;
+  }
+
+  const character = {
+    name: req.body.name,
+    classcomp: req.body.classcomp,
+    agerace: req.body.agerace,
+    affinity: req.body.affinity,
+    image: req.file ? req.file.filename : null
+  };
+
+  characters.push(character);
+  res.status(200).send(character);
+});
+
+const validateCharacter = (character) => {
+  const schema = Joi.object({
+    name: Joi.string().required(),
+    classcomp: Joi.string().required(),
+    agerace: Joi.string().required(),
+    affinity: Joi.string().required(),
+  });
+  return schema.validate(character);
+};
+
+app.listen(3000, () => {
+  console.log("I'm listening");
 });
