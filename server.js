@@ -310,6 +310,7 @@ app.get("/api/deities", (req, res)=>{
 
 const characters = [
   {
+    id: 1,
     "name": "Helia Mayr",
     "classcomp": "Fighter 11 (Rune Knight), Monk 4 (Four Elements), Paladin 3 (Heroism), Warlock 2 (Hexblade)",
     "agerace": "47 y/o Reborn Fire Genasi",
@@ -318,6 +319,7 @@ const characters = [
   }
   ,
   {
+    id: 2,
     "name": "Slate 'Red' Circan Finnley",
     "classcomp": "Artificer 16 (Forge Adept)",
     "agerace": "28 (263) y/o Reborn",
@@ -326,6 +328,7 @@ const characters = [
   }
   ,
   {
+    id: 3,
     "name": "Karavelle Devantine",
     "classcomp": "Rogue 12 (Inquisitive), Barbarian 5 (Zealot), Fighter 3 (Champion)",
     "agerace": "358 y/o Reborn Avariel Elf",
@@ -334,6 +337,7 @@ const characters = [
   }
   ,
   {
+    id: 4,
     "name": "Adonis Destrey",
     "classcomp": "Paladin 20 (Redemption), Cleric 10 (Blood-Reworked)",
     "agerace": "1064 y/o Kalashtar",
@@ -342,6 +346,7 @@ const characters = [
   }
   ,
   {
+    id: 5,
     "name": "Cody De'Airos",
     "classcomp": "Warlock 15 (Raven Queen)",
     "agerace": "48 y/o Beasthide Shifter",
@@ -350,6 +355,7 @@ const characters = [
   }
   ,
   {
+    id: 6,
     "name": "Orion Steele",
     "classcomp": "Figher 20 (Battle Master)",
     "agerace": "35 y/o Human",
@@ -358,6 +364,7 @@ const characters = [
   }
   ,
   {
+    id: 7,
     "name": "Felix Atol",
     "classcomp": "Wizard 20 (Dunamancy)",
     "agerace": "47 y/o Kalashtar",
@@ -366,6 +373,7 @@ const characters = [
   }
   ,
   {
+    id: 8,
     "name": "Joseph Uru",
     "classcomp": "Wizard 20 (Conjuration)",
     "agerace": "26 y/o Human",
@@ -374,6 +382,7 @@ const characters = [
   }
   ,
   {
+    id: 9,
     "name": "Eisel Voross",
     "classcomp": "Fighter 20 (Rune Knight)",
     "agerace": "36 y/o Ice Genasi",
@@ -382,19 +391,19 @@ const characters = [
   }
 ];
 
+let nextId = characters.length + 1;
 
 app.get("/api/characters", (req, res) => {
+  console.log("Received request for characters");
   res.send(characters);
 });
 
 app.post("/api/characters", upload.single("image"), (req, res) => {
   const result = validateCharacter(req.body);
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
-  }
+  if (result.error) return res.status(400).send(result.error.details[0].message);
 
   const character = {
+    id: nextId++,
     name: req.body.name,
     classcomp: req.body.classcomp,
     agerace: req.body.agerace,
@@ -415,6 +424,39 @@ const validateCharacter = (character) => {
   });
   return schema.validate(character);
 };
+
+app.delete("/api/characters/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = characters.findIndex((c) => c.id === id);
+
+  if (index === -1) return res.status(404).send("Character not found");
+
+  characters.splice(index, 1);
+  res.sendStatus(204);
+});
+
+app.put("/api/characters/:id", upload.single("image"), (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = characters.findIndex((c) => c.id === id);
+
+  if (index === -1) return res.status(404).send("Character not found");
+
+  const result = validateCharacter(req.body);
+  if (result.error) return res.status(400).send(result.error.details[0].message);
+
+  const updatedCharacter = {
+    id: id,
+    name: req.body.name,
+    classcomp: req.body.classcomp,
+    agerace: req.body.agerace,
+    affinity: req.body.affinity,
+    image: req.file ? req.file.filename : characters[index].image
+  };
+
+  characters[index] = updatedCharacter;
+  res.send(updatedCharacter);
+});
+
 
 app.listen(3000, () => {
   console.log("I'm listening");
