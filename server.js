@@ -26,7 +26,7 @@ const upload = multer({ storage: storage });
 
 
 mongoose
-.connect("mongodb+srv://dacrafter247:W2Z6mFYEdRHIIAEe@dacrafter1cluster.wzgbxks.mongodb.net/")
+.connect("mongodb+srv://dacrafter247:W2Z6mFYEdRHIIAEe@dacrafter1cluster.wzgbxks.mongodb.net/?retryWrites=true&w=majority&appName=Dacrafter1Cluster")
 .then(() => {
   console.log("connected to mongodb");
 })
@@ -332,91 +332,6 @@ app.get("/api/deities", (req, res)=>{
     res.send(deities);
 });
 
-/**
-  const characters = [
-  {
-    id: 1,
-    "name": "Helia Mayr",
-    "classcomp": "Fighter 11 (Rune Knight), Monk 4 (Four Elements), Paladin 3 (Heroism), Warlock 2 (Hexblade)",
-    "agerace": "47 y/o Reborn Fire Genasi",
-    "affinity": "Phoenix",
-    "image": "HeliaMayr.jpg"
-  }
-  ,
-  {
-    id: 2,
-    "name": "Slate 'Red' Circan Finnley",
-    "classcomp": "Artificer 16 (Forge Adept)",
-    "agerace": "28 (263) y/o Reborn",
-    "affinity": "Metal",
-    "image": "Slate.png"
-  }
-  ,
-  {
-    id: 3,
-    "name": "Karavelle Devantine",
-    "classcomp": "Rogue 12 (Inquisitive), Barbarian 5 (Zealot), Fighter 3 (Champion)",
-    "agerace": "358 y/o Reborn Avariel Elf",
-    "affinity": "Destruction",
-    "image": "KaravelleDevantine.jpg"
-  }
-  ,
-  {
-    id: 4,
-    "name": "Adonis Destrey",
-    "classcomp": "Paladin 20 (Redemption), Cleric 10 (Blood-Reworked)",
-    "agerace": "1064 y/o Kalashtar",
-    "affinity": "Blood",
-    "image": "AdonisDestrey.jpg"
-  }
-  ,
-  {
-    id: 5,
-    "name": "Cody De'Airos",
-    "classcomp": "Warlock 15 (Raven Queen)",
-    "agerace": "48 y/o Beasthide Shifter",
-    "affinity": "Sound",
-    "image": "CodyDe'Airos.jpg"
-  }
-  ,
-  {
-    id: 6,
-    "name": "Orion Steele",
-    "classcomp": "Figher 20 (Battle Master)",
-    "agerace": "35 y/o Human",
-    "affinity": "Earth",
-    "image": "OrionSteele.png"
-  }
-  ,
-  {
-    id: 7,
-    "name": "Felix Atol",
-    "classcomp": "Wizard 20 (Dunamancy)",
-    "agerace": "47 y/o Kalashtar",
-    "affinity": "Gravity",
-    "image": "FelixAtol.png"
-  }
-  ,
-  {
-    id: 8,
-    "name": "Joseph Uru",
-    "classcomp": "Wizard 20 (Conjuration)",
-    "agerace": "26 y/o Human",
-    "affinity": "Creation",
-    "image": "JosephUru.png"
-  }
-  ,
-  {
-    id: 9,
-    "name": "Eisel Voross",
-    "classcomp": "Fighter 20 (Rune Knight)",
-    "agerace": "36 y/o Ice Genasi",
-    "affinity": "Ice",
-    "image": "EiselVoross.jpg"
-  }
-];
-
-**/
 
 app.get("/api/characters", async (req, res) => {
   const characters = await Character.find();
