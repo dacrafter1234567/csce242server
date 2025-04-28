@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const Joi = require("joi");
+const mongoose = require("mongoose");
 const multer = require("multer");
 
 app.use(express.static("public"));
@@ -10,6 +11,7 @@ app.use("/images", express.static("images"));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -21,6 +23,28 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+
+mongoose
+.connect("mongodb+srv://dacrafter247:W2Z6mFYEdRHIIAEe@dacrafter1cluster.wzgbxks.mongodb.net/")
+.then(() => {
+  console.log("connected to mongodb");
+})
+.catch((error) => { 
+  console.log("couldn't connect to mongodb");
+});
+
+
+const characterSchema = new mongoose.Schema({
+  name:String,
+  classcomp:String,
+  agerace:String,
+  affinity:String,
+  image:String
+});
+
+const Character = mongoose.model("Character", characterSchema);
+
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -308,7 +332,8 @@ app.get("/api/deities", (req, res)=>{
     res.send(deities);
 });
 
-const characters = [
+/**
+  const characters = [
   {
     id: 1,
     "name": "Helia Mayr",
@@ -391,71 +416,84 @@ const characters = [
   }
 ];
 
-let nextId = characters.length + 1;
+**/
 
-app.get("/api/characters", (req, res) => {
-  console.log("Received request for characters");
+app.get("/api/characters", async (req, res) => {
+  const characters = await Character.find();
   res.send(characters);
 });
 
-app.post("/api/characters", upload.single("image"), (req, res) => {
+
+app.post("/api/characters", upload.single("image"), async(req, res) => {
   const result = validateCharacter(req.body);
+  
   if (result.error) return res.status(400).send(result.error.details[0].message);
 
-  const character = {
-    id: nextId++,
+  const character = new Character ({
     name: req.body.name,
     classcomp: req.body.classcomp,
     agerace: req.body.agerace,
     affinity: req.body.affinity,
-    image: req.file ? req.file.filename : null
-  };
-
-  characters.push(character);
-  res.status(200).send(character);
-});
-
-const validateCharacter = (character) => {
-  const schema = Joi.object({
-    name: Joi.string().required(),
-    classcomp: Joi.string().required(),
-    agerace: Joi.string().required(),
-    affinity: Joi.string().required(),
   });
-  return schema.validate(character);
-};
 
-app.delete("/api/characters/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = characters.findIndex((c) => c.id === id);
+  if(req.file){
+    character.image = req.file.filename;
+  }
 
-  if (index === -1) return res.status(404).send("Character not found");
-
-  characters.splice(index, 1);
-  res.sendStatus(204);
+  const newCharacter = await character.save();
+  res.status(200).send(newCharacter);
 });
 
-app.put("/api/characters/:id", upload.single("image"), (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = characters.findIndex((c) => c.id === id);
 
-  if (index === -1) return res.status(404).send("Character not found");
-
+app.put("/api/characters/:id", upload.single("image"), async (req, res) => {
   const result = validateCharacter(req.body);
   if (result.error) return res.status(400).send(result.error.details[0].message);
 
   const updatedCharacter = {
-    id: id,
     name: req.body.name,
     classcomp: req.body.classcomp,
     agerace: req.body.agerace,
     affinity: req.body.affinity,
-    image: req.file ? req.file.filename : characters[index].image
-  };
+  }
 
-  characters[index] = updatedCharacter;
-  res.send(updatedCharacter);
+  if (req.file) {
+    updatedCharacter.image = req.file.filename;
+  }
+
+  const wentThrough = await Character.updateOne({ _id: req.params.id }, updatedCharacter);
+
+  if (wentThrough.modifiedCount === 0) {
+    return res.status(404).send("Character not found or no changes made.");
+  }
+
+  // Fetch the full updated character to send back to the client
+  const character = await Character.findOne({ _id: req.params.id });
+
+  res.send(character);  // Send back the full updated character object
 });
+
+
+
+
+app.delete("/api/characters/:id", async(req, res) => {
+  const character = await Character.findByIdAndDelete(req.params.id);
+  res.status(200).send(character);
+});
+
+
+const validateCharacter = (character) => {
+  const schema = Joi.object({
+    _id:Joi.allow(""),
+    name:Joi.string().required(),
+    classcomp:Joi.string().required(),
+    agerace:Joi.string().required(),
+    affinity:Joi.string().required(),
+    image:Joi.allow("")
+  });
+
+  return schema.validate(character);
+
+};
 
 
 app.listen(3000, () => {
