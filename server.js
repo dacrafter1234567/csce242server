@@ -26,7 +26,8 @@ const upload = multer({ storage: storage });
 
 
 mongoose
-.connect("mongodb+srv://dacrafter247:W2Z6mFYEdRHIIAEe@dacrafter1cluster.wzgbxks.mongodb.net/")
+.connect("mongodb+srv://dacrafter247:F9qDqsleDO89QYga@dacrafter1cluster.wzgbxks.mongodb.net/")
+
 .then(() => {
   console.log("connected to mongodb");
 })
