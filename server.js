@@ -26,7 +26,7 @@ const upload = multer({ storage: storage });
 
 
 mongoose
-.connect("mongodb+srv://dacrafter247:W2Z6mFYEdRHIIAEe@dacrafter1cluster.wzgbxks.mongodb.net")
+.connect("mongodb+srv://dacrafter247:W2Z6mFYEdRHIIAEe@dacrafter1cluster.wzgbxks.mongodb.net/")
 .then(() => {
   console.log("connected to mongodb");
 })
@@ -333,31 +333,40 @@ app.get("/api/deities", (req, res)=>{
 });
 
 
+
 app.get("/api/characters", async (req, res) => {
   const characters = await Character.find();
   res.send(characters);
 });
 
 
-app.post("/api/characters", upload.single("image"), async(req, res) => {
+app.post("/api/characters", upload.single("image"), async (req, res) => {
+  console.log("Received data:", req.body); // Log request body
+  console.log("Received file:", req.file); // Log the file
   const result = validateCharacter(req.body);
-  
+
   if (result.error) return res.status(400).send(result.error.details[0].message);
 
-  const character = new Character ({
+  const character = new Character({
     name: req.body.name,
     classcomp: req.body.classcomp,
     agerace: req.body.agerace,
     affinity: req.body.affinity,
   });
 
-  if(req.file){
+  if (req.file) {
     character.image = req.file.filename;
   }
 
-  const newCharacter = await character.save();
-  res.status(200).send(newCharacter);
+  try {
+    const newCharacter = await character.save();
+    res.status(200).send(newCharacter);
+  } catch (error) {
+    console.error("Error saving character:", error);
+    res.status(500).send("Internal server error");
+  }
 });
+
 
 
 app.put("/api/characters/:id", upload.single("image"), async (req, res) => {
