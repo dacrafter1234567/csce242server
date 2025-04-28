@@ -76,7 +76,6 @@ app.post("/api/characters", upload.single("image"), async (req, res) => {
   console.log("Received file:", req.file); // Log the file data
 
   const result = validateCharacter(req.body);
-
   if (result.error) {
     console.error("Validation error:", result.error.details[0].message);  // Log validation error
     return res.status(400).send(result.error.details[0].message);
@@ -98,10 +97,11 @@ app.post("/api/characters", upload.single("image"), async (req, res) => {
     console.log("Character saved successfully:", newCharacter);
     res.status(200).send(newCharacter);
   } catch (error) {
-    console.error("Error saving character:", error);  // Log any error while saving character
-    res.status(500).send("Internal server error");
+    console.error("Error saving character:", error);  // Log detailed error message
+    res.status(500).send("Internal server error: " + error.message);  // Send error message in the response
   }
 });
+
 
 app.put("/api/characters/:id", upload.single("image"), async (req, res) => {
   console.log(`Received PUT request to update character with id: ${req.params.id}`);
